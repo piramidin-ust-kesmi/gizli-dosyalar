@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gizli Erişim</title>
+    <style>
+        /* Netlify rozetini hedef alıp gizleyen güçlü CSS kuralları */
+        iframe[src*="netlify"], a[href*="netlify.com"], #netlify-badge {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body {
+            background-color: #0d1117;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.72)), url('illimünati.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .box {
+            background: rgba(22, 27, 34, 0.85);
+            backdrop-filter: blur(6px);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0,0,0,0.9);
+        }
+        input {
+            background: rgba(13, 17, 23, 0.9);
+            border: 1px solid #58a6ff;
+            color: #58a6ff;
+            font-size: 24px;
+            letter-spacing: 10px;
+            text-align: center;
+            padding: 10px;
+            width: 180px;
+            border-radius: 5px;
+            margin: 15px 0;
+            outline: none;
+        }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background: #2ea043; }
+        #mesaj { color: #f85149; margin-top: 15px; font-weight: bold; }
+        #videoAlani { display: none; margin-top: 20px; text-align: center; }
+        video { max-width: 90vw; max-height: 80vh; border: 2px solid #58a6ff; border-radius: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.9); }
+    </style>
+</head>
+<body>
+
+<div class="box" id="girisKutusu">
+    <h2>ERİŞİM KISITLI</h2>
+    <p>Devam etmek için 5 haneli PIN kodunu girin:</p>
+    <input type="password" id="pinInput" maxlength="5" placeholder="•••••" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="if(event.key === 'Enter') kontrolEt();">
+    <br>
+    <button onclick="kontrolEt()">DOĞRULA</button>
+    <div id="mesaj"></div>
+</div>
+
+<div id="videoAlani">
+    <video id="gizliVideo" controls>
+        <source src="aiga%20saf%20hali.mp4" type="video/mp4">
+        Tarayıcınız video etiketini desteklemiyor.
+    </video>
+</div>
+
+<script>
+    // Netlify rozeti sonradan yüklense bile anında yakalayıp sayfadan silen güvenlik scripti
+    setInterval(() => {
+        document.querySelectorAll('iframe, a, div').forEach(el => {
+            if (
+                (el.src && el.src.includes('netlify')) || 
+                (el.href && el.href.includes('netlify.com')) || 
+                (el.innerText && el.innerText.includes('Powered by Netlify'))
+            ) {
+                el.remove();
+            }
+        });
+    }, 50);
+
+    const DOGRU_PIN = "51605";
+    let kalanHak = 3;
+
+    if (localStorage.getItem("banli_kullanici") === "true") {
+        banla();
+    }
+
+    function kontrolEt() {
+        if (localStorage.getItem("banli_kullanici") === "true") return;
+
+        const girilen = document.getElementById("pinInput").value;
+        const mesaj = document.getElementById("mesaj");
+
+        if (girilen.length !== 5) {
+            mesaj.innerText = "Lütfen 5 haneli bir kod girin.";
+            return;
+        }
+
+        if (girilen === DOGRU_PIN) {
+            document.getElementById("girisKutusu").style.display = "none";
+            document.getElementById("videoAlani").style.display = "block";
+            document.getElementById("gizliVideo").play();
+        } else {
+            kalanHak--;
+            if (kalanHak > 0) {
+                mesaj.innerText = `Hatalı PIN! Kalan deneme hakkı: ${kalanHak}`;
+                document.getElementById("pinInput").value = "";
+            } else {
+                localStorage.setItem("banli_kullanici", "true");
+                banla();
+            }
+        }
+    }
+
+    function banla() {
+        document.getElementById("girisKutusu").innerHTML = `
+            <h2 style="color: #f85149;">ERİŞİM ENGELLENDİ (BANLANDINIZ)</h2>
+            <p>3 başarısız deneme yaptığınız için bu cihaza erişim kalıcı olarak kapatıldı.</p>
+        `;
+    }
+</script>
+<script>
+    // Netlify rozetini ve iframe'ini kaynağında yok eden script
+    function rozetiYokEt() {
+        // Doğrudan Netlify iframe ID'sini hedef al
+        const iframeBadge = document.getElementById('netlify-badge-iframe');
+        if (iframeBadge) iframeBadge.remove();
+
+        // İçinde Netlify geçen tüm iframe veya elementleri temizle
+        document.querySelectorAll('iframe, div, a').forEach(el => {
+            if (
+                (el.src && el.src.includes('netlify')) || 
+                (el.id && el.id.includes('netlify')) ||
+                (el.innerText && el.innerText.includes('Netlify'))
+            ) {
+                el.remove();
+            }
+        });
+    }
+    
+    // Sayfa yüklenir yüklenmez ve sürekli olarak çalıştır
+    setInterval(rozetiYokEt, 10);
+</script>
+</body>
+</html>
