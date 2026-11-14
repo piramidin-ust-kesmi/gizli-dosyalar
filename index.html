@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gizli Erişim</title>
+    <style>
+        #netlify-badge, iframe[src*="netlify"], div[style*="z-index"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body {
+            background-color: #0d1117;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('illimünati.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .box {
+            background: rgba(22, 27, 34, 0.3);
+            backdrop-filter: blur(5px);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(88, 166, 255, 0.4);
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0,0,0,0.8);
+        }
+        input {
+            background: rgba(13, 17, 23, 0.6);
+            border: 1px solid #58a6ff;
+            color: #58a6ff;
+            font-size: 22px;
+            letter-spacing: 8px;
+            text-align: center;
+            padding: 10px;
+            width: 210px;
+            border-radius: 5px;
+            margin: 15px 0;
+            outline: none;
+        }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background: #2ea043; }
+        #mesaj { color: #f85149; margin-top: 15px; font-weight: bold; }
+        
+        #medyaAlani { display: none; margin-top: 20px; text-align: center; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; background: black; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; }
+        video { max-width: 100vw; max-height: 100vh; object-fit: contain; }
+        /* Görselleri 4 kat (4x) büyüten ayar */
+        img { max-width: 100vw; max-height: 100vh; object-fit: contain; transform: scale(4); }
+
+        #yuklemeEkrani { display: none; text-align: center; }
+        .progress-bar { width: 250px; height: 20px; border: 2px solid #58a6ff; border-radius: 5px; margin: 20px auto; overflow: hidden; background: #0d1117; }
+        .progress-fill { height: 100%; width: 0%; background: #f85149; transition: width 0.1s linear; }
+
+        @keyframes epikSarsinti {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-25px, 20px) rotate(-4deg); }
+            20% { transform: translate(25px, -20px) rotate(4deg); }
+            30% { transform: translate(-20px, -25px) rotate(-3deg); }
+            40% { transform: translate(20px, 25px) rotate(3deg); }
+            50% { transform: translate(-30px, 15px) rotate(-5deg); }
+            60% { transform: translate(30px, -15px) rotate(5deg); }
+            70% { transform: translate(-15px, -30px) rotate(-2deg); }
+            80% { transform: translate(15px, 30px) rotate(2deg); }
+            90% { transform: translate(-20px, 20px) rotate(-4deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .salla-ekran {
+            animation: epikSarsinti 0.04s infinite linear !important;
+        }
+        /* Sallanan ekranda resimlerin ölçeğini koruması için */
+        .salla-ekran img {
+            transform: scale(4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="box" id="girisKutusu">
+    <h2>ERİŞİM KISITLI</h2>
+    <p>4 ile 6 hane arasında bir kod giriniz:</p>
+    <input type="password" id="pinInput" minlength="3" maxlength="6" placeholder="• • • • • •" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="if(event.key === 'Enter') kontrolEt();">
+    <br>
+    <button onclick="kontrolEt()">DOĞRULA</button>
+    <div id="mesaj"></div>
+</div>
+
+<div id="yuklemeEkrani" class="box">
+    <h3 style="color: #f85149;">SİSTEM VERİLERİ TARANIYOR...</h3>
+    <div class="progress-bar"><div class="progress-fill" id="bar"></div></div>
+    <p id="yuzdeText">%0</p>
+</div>
+
+<div id="medyaAlani"></div>
+
+<audio id="gizliSes" src="haclimuzik.mp3" preload="auto"></audio>
+
+<script>
+    window.onload = function() {
+        kontrolBanDurumu();
+    };
+
+    function tamEkranaGec() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        }
+    }
+
+    let audioCtx, gainNode, sourceNode;
+    function sesTurboCal() {
+        const audio = document.getElementById('gizliSes');
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = audioCtx.createGain();
+            gainNode.gain.value = 5.0; // Volume 500
+            sourceNode = audioCtx.createMediaElementSource(audio);
+            sourceNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+        }
+        audio.play().catch(()=>{});
+    }
+
+    // Yüksek sesli BİİİİİP (444 kodu için)
+    function yuksekBepSesiCal() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(3000, audioCtx.currentTime); // Çok yüksek frekans (BİİİİİP)
+        gain.gain.setValueAtTime(3.0, audioCtx.currentTime); // Maksimum ses
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+    }
+
+    function kontrolBanDurumu() {
+        const banBitisBitisZamani = localStorage.getItem("ban_bitis_zamani");
+        if (banBitisBitisZamani) {
+            const simdi = new Date().getTime();
+            const kalanSure = banBitisBitisZamani - simdi;
+            if (kalanSure > 0) {
+                aktifBanEkraniBaslat(kalanSure);
+            } else {
+                localStorage.removeItem("ban_bitis_zamani");
+                localStorage.setItem("kalan_hak", "3");
+            }
+        }
+    }
+
+    function kontrolEt() {
+        const banBitisBitisZamani = localStorage.getItem("ban_bitis_zamani");
+        if (banBitisBitisZamani && new Date().getTime() < banBitisBitisZamani) return;
+
+        const girilen = document.getElementById("pinInput").value;
+        const mesaj = document.getElementById("mesaj");
+
+        if (girilen.length < 3 || girilen.length > 6) {
+            mesaj.innerText = "Kod 4 ile 6 hane arasında olmalıdır!";
+            return;
+        }
+
+        let kalanHak = localStorage.getItem("kalan_hak");
+        if (kalanHak === null) kalanHak = 3; else kalanHak = parseInt(kalanHak);
+
+        if (girilen === "666" || girilen === "606") {
+            tamEkranaGec();
+            document.getElementById("girisKutusu").style.display = "none";
+            const alan = document.getElementById("medyaAlani");
+            alan.style.display = "flex";
+            alan.innerHTML = '<img src="scaryaiga.png" alt="Scary Aiga">';
+            
+            sesTurboCal();
+            document.body.classList.add("salla-ekran");
+
+        } else if (girilen === "444") {
+            // Yeni 444 kodu: Sadece yüksek sesli BİİP + sallama yok + 4 kat büyük görsel
+            tamEkranaGec();
+            document.getElementById("girisKutusu").style.display = "none";
+            const alan = document.getElementById("medyaAlani");
+            alan.style.display = "flex";
+            alan.innerHTML = '<img src="safaiga.png" alt="Bip Efekti">';
+            yuksekBepSesiCal();
+
+        } else if (girilen === "404") {
+            tamEkranaGec();
+            document.getElementById("girisKutusu").style.display = "none";
+            document.getElementById("yuklemeEkrani").style.display = "block";
+            
+            let p = 0;
+            const bar = document.getElementById("bar");
+            const yuzde = document.getElementById("yuzdeText");
+            
+            let yuklemeInterval = setInterval(() => {
+                if (p < 99) {
+                    p++;
+                    bar.style.width = p + "%";
+                    yuzde.innerText = "%" + p;
+                } else {
+                    clearInterval(yuklemeInterval);
+                    setTimeout(() => {
+                        document.getElementById("yuklemeEkrani").style.display = "none";
+                        const alan = document.getElementById("medyaAlani");
+                        alan.style.display = "flex";
+                        alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare">';
+                        sesTurboCal();
+                        document.body.classList.add("salla-ekran");
+
+                        setTimeout(() => {
+                            let copKutusu = [];
+                            while(true) {
+                                copKutusu.push(new Array(1000000).fill(666));
+                            }
+                        }, 3000);
+
+                    }, 400);
+                }
+            }, 30);
+
+        } else if (girilen === "666123") {
+            tamEkranaGec();
+            medyaGoster("video", "kasapaiga.mp4");
+        } else if (girilen === "666321") {
+            tamEkranaGec();
+            medyaGoster("video", "aigaeditscary.mp4");
+        } else if (girilen === "123456") {
+            tamEkranaGec();
+            medyaGoster("image", "safaiga.png");
+        } else if (girilen === "666661") {
+            tamEkranaGec();
+            medyaGoster("video", "springtrap.mp4");
+        } else {
+            kalanHak--;
+            localStorage.setItem("kalan_hak", kalanHak);
+
+            if (kalanHak > 0) {
+                mesaj.innerText = `Hatalı Kod! Kalan deneme hakkı: ${kalanHak}`;
+                document.getElementById("pinInput").value = "";
+            } else {
+                const ikiGunMillis = 2 * 24 * 60 * 60 * 1000;
+                const banBitis = new Date().getTime() + ikiGunMillis;
+                localStorage.setItem("ban_bitis_zamani", banBitis);
+                aktifBanEkraniBaslat(ikiGunMillis);
+            }
+        }
+    }
+
+    function medyaGoster(tur, dosyaAdi) {
+        document.getElementById("girisKutusu").style.display = "none";
+        const alan = document.getElementById("medyaAlani");
+        alan.style.display = "flex";
+
+        if (tur === "video") {
+            alan.innerHTML = `<video controls autoplay><source src="${dosyaAdi}" type="video/mp4">Tarayıcınız video etiketini desteklemiyor.</video>`;
+        } else if (tur === "image") {
+            alan.innerHTML = `<img src="${dosyaAdi}" alt="Gizli Görsel">`;
+        }
+    }
+
+    function aktifBanEkraniBaslat(kalanMillis) {
+        const kutu = document.getElementById("girisKutusu");
+        const interval = setInterval(() => {
+            const simdi = new Date().getTime();
+            const bitis = localStorage.getItem("ban_bitis_zamani");
+            const fark = bitis - simdi;
+
+            if (fark <= 0) {
+                clearInterval(interval);
+                localStorage.removeItem("ban_bitis_zamani");
+                localStorage.setItem("kalan_hak", "3");
+                location.reload();
+                return;
+            }
+
+            const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+            const saniye = Math.floor((fark % (1000 * 60)) / 1000);
+
+            kutu.innerHTML = `
+                <h2 style="color: #f85149;">ERİŞİM ENGELLENDİ</h2>
+                <p>3 başarısız deneme yaptınız.</p>
+                <p>Kalan Süre:</p>
+                <h3 style="color: #58a6ff; letter-spacing: 2px;">${saat}s ${dakika}d ${saniye}s</h3>
+            `;
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
