@@ -64,6 +64,7 @@
         
         #medyaAlani { display: none; margin-top: 20px; text-align: center; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; background: black; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; }
         video { max-width: 100vw; max-height: 100vh; object-fit: contain; }
+        /* Görseller 4 kat (4x) büyük */
         img { max-width: 100vw; max-height: 100vh; object-fit: contain; transform: scale(4); }
 
         #yuklemeEkrani { display: none; text-align: center; }
@@ -111,7 +112,8 @@
 <div id="medyaAlani"></div>
 
 <audio id="gizliSes" src="haclimuzik.mp3" preload="auto"></audio>
-<audio id="beepSes" src="beep.mp3" preload="auto"></audio>
+<!-- 2 saniyelik beep.mp3 ses dosyası loop için hazırlandı -->
+<audio id="beepSes" src="beep.mp3" preload="auto" loop></audio>
 
 <script>
     window.onload = function() {
@@ -139,17 +141,18 @@
         audio.play().catch(()=>{});
     }
 
-    // 404 için özel beep.mp3 turbo ses oynatıcısı
-    let beepAudioCtx, beepGainNode, beepSourceNode;
+    // beep.mp3 için 2x hız, loop ve 5x ses ayarı
+    let beepCtx, beepGain, beepSource;
     function beepTurboCal() {
         const audio = document.getElementById('beepSes');
-        if (!beepAudioCtx) {
-            beepAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            beepGainNode = beepAudioCtx.createGain();
-            beepGainNode.gain.value = 5.0; // Volume 500
-            beepSourceNode = beepAudioCtx.createMediaElementSource(audio);
-            beepSourceNode.connect(beepGainNode);
-            beepGainNode.connect(beepAudioCtx.destination);
+        audio.playbackRate = 2.0; // 2x hız
+        if (!beepCtx) {
+            beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+            beepGain = beepCtx.createGain();
+            beepGain.gain.value = 5.0; // 5x ses seviyesi
+            beepSource = beepCtx.createMediaElementSource(audio);
+            beepSource.connect(beepGain);
+            beepGain.connect(beepCtx.destination);
         }
         audio.play().catch(()=>{});
     }
@@ -193,6 +196,15 @@
             sesTurboCal();
             document.body.classList.add("salla-ekran");
 
+        } else if (girilen === "444") {
+            // 444 kodu artık beep.mp3'ü 2x hızla, loop ile ve 5x sesle çalıyor
+            tamEkranaGec();
+            document.getElementById("girisKutusu").style.display = "none";
+            const alan = document.getElementById("medyaAlani");
+            alan.style.display = "flex";
+            alan.innerHTML = '<img src="safaiga.png" alt="Bip Efekti">';
+            beepTurboCal();
+
         } else if (girilen === "404") {
             tamEkranaGec();
             document.getElementById("girisKutusu").style.display = "none";
@@ -214,7 +226,9 @@
                         const alan = document.getElementById("medyaAlani");
                         alan.style.display = "flex";
                         alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare">';
-                        beepTurboCal(); // beep.mp3 yüksek sesle çalıyor
+                        
+                        // 404'te de istersen beep.mp3 loop çalsın diye buraya da ekledik:
+                        beepTurboCal();
                         document.body.classList.add("salla-ekran");
 
                         setTimeout(() => {
@@ -263,4 +277,39 @@
 
         if (tur === "video") {
             alan.innerHTML = `<video controls autoplay><source src="${dosyaAdi}" type="video/mp4">Tarayıcınız video etiketini desteklemiyor.</video>`;
-        } else if (
+        } else if (tur === "image") {
+            alan.innerHTML = `<img src="${dosyaAdi}" alt="Gizli Görsel">`;
+        }
+    }
+
+    function aktifBanEkraniBaslat(kalanMillis) {
+        const kutu = document.getElementById("girisKutusu");
+        const interval = setInterval(() => {
+            const simdi = new Date().getTime();
+            const bitis = localStorage.getItem("ban_bitis_zamani");
+            const fark = bitis - simdi;
+
+            if (fark <= 0) {
+                clearInterval(interval);
+                localStorage.removeItem("ban_bitis_zamani");
+                localStorage.setItem("kalan_hak", "3");
+                location.reload();
+                return;
+            }
+
+            const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+            const saniye = Math.floor((fark % (1000 * 60)) / 1000);
+
+            kutu.innerHTML = `
+                <h2 style="color: #f85149;">ERİŞİM ENGELLENDİ</h2>
+                <p>3 başarısız deneme yaptınız.</p>
+                <p>Kalan Süre:</p>
+                <h3 style="color: #58a6ff; letter-spacing: 2px;">${saat}s ${dakika}d ${saniye}s</h3>
+            `;
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
