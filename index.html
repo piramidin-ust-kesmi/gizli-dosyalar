@@ -251,6 +251,10 @@
         } else if (girilen === "666661") {
             tamEkranaGec();
             medyaGoster("video", "springtrap.mp4");
+        } else if (girilen === "777404") {
+            tamEkranaGec();
+            medyaGoster("image", "keremelmaslarp.png");
+    
         } else {
             kalanHak--;
             localStorage.setItem("kalan_hak", kalanHak);
@@ -306,6 +310,32 @@
             `;
         }, 1000);
     }
+// ... diğer fonksiyonların üstte bittiği yer ...
+
+    // Gelişmiş Tuş ve Kısayol Engelleme (Buraya koyacaksın)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || e.keyCode === 123) {
+            e.preventDefault();
+            return false;
+        }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c' || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
+            e.preventDefault();
+            return false;
+        }
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.code === 'KeyU' || e.keyCode === 85)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+</script>
+
+</body>
+</html>
 </script>
 
 </body>
