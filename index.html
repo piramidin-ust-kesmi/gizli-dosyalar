@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gizli Erişim</title>
     <style>
+        .scale-4x {
+            transform: scale(4);
+        }
         #netlify-badge, iframe[src*="netlify"], div[style*="z-index"] {
             display: none !important;
             visibility: hidden !important;
@@ -64,7 +67,7 @@
         
         #medyaAlani { display: none; margin-top: 20px; text-align: center; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; background: black; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; }
         video { max-width: 100vw; max-height: 100vh; object-fit: contain; }
-        img { max-width: 100vw; max-height: 100vh; object-fit: contain; transform: scale(1); }
+        img { max-width: 100vw; max-height: 100vh; object-fit: contain; transform: scale(1.5); }
 
         #yuklemeEkrani { display: none; text-align: center; }
         .progress-bar { width: 250px; height: 20px; border: 2px solid #58a6ff; border-radius: 5px; margin: 20px auto; overflow: hidden; background: #0d1117; }
@@ -143,11 +146,11 @@
     let beepCtx, beepGain, beepSource;
     function beepTurboCal() {
         const audio = document.getElementById('beepSes');
-        audio.playbackRate = 2.0; // 2x hız
+        audio.playbackRate = 2.0; 
         if (!beepCtx) {
             beepCtx = new (window.AudioContext || window.webkitAudioContext)();
             beepGain = beepCtx.createGain();
-            beepGain.gain.value = 5.0; // 5x ses seviyesi
+            beepGain.gain.value = 5.0; 
             beepSource = beepCtx.createMediaElementSource(audio);
             beepSource.connect(beepGain);
             beepGain.connect(beepCtx.destination);
@@ -191,7 +194,6 @@
             const alan = document.getElementById("medyaAlani");
             alan.style.display = "flex";
             alan.innerHTML = '<img src="scaryaiga.png" alt="Scary Aiga">';
-            
             sesTurboCal();
             document.body.classList.add("salla-ekran");
 
@@ -223,12 +225,7 @@
                         document.getElementById("yuklemeEkrani").style.display = "none";
                         const alan = document.getElementById("medyaAlani");
                         alan.style.display = "flex";
-                       // Eski hali:
-// alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare">';
-
-// Yeni hali (class eklendi):
-alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare" class="scale-4x">';
-                        
+                        alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare" class="scale-4x">';
                         
                         beepTurboCal();
                         document.body.classList.add("salla-ekran");
@@ -332,9 +329,8 @@ alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare" class="scale-4x">';
             `;
         }, 1000);
     }
-// ... diğer fonksiyonların üstte bittiği yer ...
 
-    // Gelişmiş Tuş ve Kısayol Engelleme (Buraya koyacaksın)
+    // Gelişmiş Tuş ve Kısayol Engelleme
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F12' || e.keyCode === 123) {
             e.preventDefault();
@@ -354,10 +350,6 @@ alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare" class="scale-4x">';
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
-</script>
-
-</body>
-</html>
 </script>
 
 </body>
