@@ -223,7 +223,12 @@
                         document.getElementById("yuklemeEkrani").style.display = "none";
                         const alan = document.getElementById("medyaAlani");
                         alan.style.display = "flex";
-                        alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare">';
+                       // Eski hali:
+// alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare">';
+
+// Yeni hali (class eklendi):
+alan.innerHTML = '<img src="jumpscare.png" alt="Jumpscare" class="scale-4x">';
+                        
                         
                         beepTurboCal();
                         document.body.classList.add("salla-ekran");
